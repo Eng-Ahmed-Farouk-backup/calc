@@ -46,11 +46,26 @@ jobs:
           --name ${{ matrix.output_name }} \
           main.py
 
-    - name: Upload artifact
+    - name: Upload artifact (Linux)
+      if: runner.os == 'Linux'
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.asset_name }}
-        path: dist/${{ matrix.output_name }}
+        name: main-linux
+        path: dist/main-linux
+
+    - name: Upload artifact (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: main-windows.exe
+        path: dist/main.exe
+
+    - name: Upload artifact (macOS)
+      if: runner.os == 'macOS'
+      uses: actions/upload-artifact@v4
+      with:
+        name: main-macos
+        path: dist/main-macos
 
   release:
     name: Release
@@ -62,6 +77,11 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
 
+    - name: Make executables executable
+      run: |
+        chmod +x main-linux/main-linux || true
+        chmod +x main-macos/main-macos || true
+
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
       with:
@@ -70,5 +90,6 @@ jobs:
           main-windows.exe/main-windows.exe
           main-macos/main-macos
         generate_release_notes: true
+        fail_on_unmatched_files: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
