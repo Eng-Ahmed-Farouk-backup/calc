@@ -21,6 +21,14 @@ I used While loop to repeat the process until the user Enter 0
 go to https://ahmedmfarouk125-gmail-com.trinket.io/sites/calc
 and Have fun yayyy!
 
+### OR
+
+go to https://github.com/Eng-Ahmed-Farouk-backup/calc/releases/v1.0.2
+
+- install linux file if you are linux 
+- install macOS if you are macOS
+- run the file and calculate !
+
 # Author
 this is a CLI Calc Made By Ahmed Farouk
 Passionate about STEAM, Entrepreneurship 
