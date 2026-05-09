@@ -1,0 +1,80 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            output_name: main-linux
+            asset_name: main-linux
+            pyinstaller_args: --onefile
+          - os: windows-latest
+            output_name: main.exe
+            asset_name: main-windows.exe
+            pyinstaller_args: --onefile
+          - os: macos-latest
+            output_name: main-macos
+            asset_name: main-macos
+            pyinstaller_args: --onefile --target-architecture universal2
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install PyInstaller
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller ${{ matrix.pyinstaller_args }} \
+          --name ${{ matrix.output_name }} \
+          main.py
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.asset_name }}
+        path: dist/${{ matrix.output_name }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: List artifacts
+      run: ls -R artifacts
+
+    - name: Create Release and Upload Assets
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/main-linux/main-linux
+          artifacts/main-windows.exe/main-windows.exe
+          artifacts/main-macos/main-macos
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
