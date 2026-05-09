@@ -17,15 +17,12 @@ jobs:
           - os: ubuntu-latest
             output_name: main-linux
             asset_name: main-linux
-            pyinstaller_args: --onefile
           - os: windows-latest
             output_name: main.exe
             asset_name: main-windows.exe
-            pyinstaller_args: --onefile
           - os: macos-latest
             output_name: main-macos
             asset_name: main-macos
-            pyinstaller_args: --onefile --target-architecture universal2
 
     steps:
     - name: Checkout code
@@ -41,11 +38,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller
 
-    - name: Build with PyInstaller
+    - name: Build with PyInstaller (Unix)
+      if: runner.os != 'Windows'
       run: |
-        pyinstaller ${{ matrix.pyinstaller_args }} \
-          --name ${{ matrix.output_name }} \
-          main.py
+        pyinstaller --onefile --name ${{ matrix.output_name }} main.py
+
+    - name: Build with PyInstaller (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        pyinstaller --onefile --name ${{ matrix.output_name }} main.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -64,9 +65,6 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
-
-    - name: List artifacts
-      run: ls -R artifacts
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v1
